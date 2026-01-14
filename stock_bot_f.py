@@ -7,8 +7,8 @@ import os
 
 # ===================== CONFIG =====================
 
-DISCORD_BOT_TOKEN = "bt"
-NEWS_API_KEY = "api"
+DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
 CHANNEL_ID = None  # optional
 
@@ -33,33 +33,11 @@ PERSONAL_STOCKS = {
 }
 
 NEWS_SITES = [
-    # Major US finance
-    "cnbc.com",
-    "finance.yahoo.com",
-    "marketwatch.com",
-    "bloomberg.com",
-    "reuters.com",
-
-    # Trading / investing focused
-    "seekingalpha.com",
-    "benzinga.com",
-    "fool.com",
-    "investopedia.com",
-    "thestreet.com",
-    "zacks.com",
-
-    # Market news & analysis
-    "wsj.com",
-    "fortune.com",
-    "forbes.com",
-    "businessinsider.com",
-    "axios.com",
-
-    # Earnings & company news
-    "prnewswire.com",
-    "globenewswire.com"
+    "cnbc.com", "finance.yahoo.com", "marketwatch.com",
+    "bloomberg.com", "reuters.com", "seekingalpha.com",
+    "benzinga.com", "fool.com", "investopedia.com",
+    "forbes.com", "businessinsider.com"
 ]
-
 
 MAX_ARTICLES = 3
 
@@ -97,14 +75,11 @@ def fetch_articles(query):
     if r.get("status") != "ok":
         return []
 
-    articles = []
     now = datetime.now(timezone.utc)
+    articles = []
 
     for a in r["articles"]:
-        published = datetime.fromisoformat(
-            a["publishedAt"].replace("Z", "+00:00")
-        )
-
+        published = datetime.fromisoformat(a["publishedAt"].replace("Z", "+00:00"))
         if (now - published).days > 7:
             continue
 
@@ -147,83 +122,15 @@ async def auto_price_alerts():
             await send_auto(f"🚨 **VOLATILITY**\n{s} moved {pct:+.2f}%")
 
 
-@tasks.loop(minutes=30)
-async def auto_market_news():
-    articles = fetch_articles("US stock market OR wall street")
-    if not articles:
-        return
-    msg = "📰 **MARKET NEWS (US)**\n\n"
-    for t, l in articles:
-        if l not in STATE["news_seen"]:
-            msg += f"• {t}\n{l}\n\n"
-            STATE["news_seen"].add(l)
-    await send_auto(msg)
-
-
-@tasks.loop(hours=24)
-async def auto_earnings():
-    articles = fetch_articles("earnings preview OR reporting earnings")
-    if articles:
-        msg = "📅 **EARNINGS TO WATCH**\n\n"
-        for t, l in articles:
-            msg += f"• {t}\n{l}\n\n"
-        await send_auto(msg)
-
-
-@tasks.loop(hours=24)
-async def auto_calendar():
-    articles = fetch_articles("earnings calendar next week US stocks")
-    if articles:
-        msg = "📅 **EARNINGS CALENDAR**\n\n"
-        for t, l in articles:
-            msg += f"• {t}\n{l}\n\n"
-        await send_auto(msg)
-
-
-@tasks.loop(hours=24)
-async def auto_premarket():
-    articles = fetch_articles("US premarket movers stocks")
-    if articles:
-        msg = "🌅 **PREMARKET MOVERS**\n\n"
-        for t, l in articles:
-            msg += f"• {t}\n{l}\n\n"
-        await send_auto(msg)
-
-
 @tasks.loop(hours=24)
 async def auto_penny():
     articles = fetch_articles("penny stocks to watch")
     if articles:
-        msg = "🪙 **PENNY STOCK TO WATCH**\n\n"
+        msg = "🪙 **PENNY STOCKS (LAST 7 DAYS)**\n\n"
         for t, l in articles:
             if l not in STATE["penny_seen"]:
                 msg += f"• {t}\n{l}\n\n"
                 STATE["penny_seen"].add(l)
-        await send_auto(msg)
-
-
-@tasks.loop(minutes=15)
-async def auto_volume_spike():
-    for s in PERSONAL_STOCKS:
-        try:
-            hist = yf.Ticker(s).history(period="10d")
-            if len(hist) < 10:
-                continue
-            avg_vol = hist["Volume"][:-1].mean()
-            latest = hist["Volume"].iloc[-1]
-            if latest >= avg_vol * 2:
-                await send_auto(f"🚀 **VOLUME SPIKE**\n{s} unusually high volume")
-        except:
-            continue
-
-
-@tasks.loop(hours=24)
-async def auto_options():
-    articles = fetch_articles("unusual options activity US stocks")
-    if articles:
-        msg = "🧠 **OPTIONS FLOW**\n\n"
-        for t, l in articles:
-            msg += f"• {t}\n{l}\n\n"
         await send_auto(msg)
 
 # ===================== COMMANDS =====================
@@ -242,41 +149,9 @@ async def stocknews(ctx, symbol: str):
     await ctx.send(msg)
 
 @bot.command()
-async def earnings(ctx):
-    articles = fetch_articles("earnings preview OR reporting earnings")
-    msg = "📅 **EARNINGS**\n\n"
-    for t, l in articles:
-        msg += f"• {t}\n{l}\n\n"
-    await ctx.send(msg)
-
-@bot.command()
-async def calendar(ctx):
-    articles = fetch_articles("earnings calendar next week US stocks")
-    msg = "📅 **EARNINGS CALENDAR**\n\n"
-    for t, l in articles:
-        msg += f"• {t}\n{l}\n\n"
-    await ctx.send(msg)
-
-@bot.command()
-async def premarket(ctx):
-    articles = fetch_articles("US premarket movers stocks")
-    msg = "🌅 **PREMARKET MOVERS**\n\n"
-    for t, l in articles:
-        msg += f"• {t}\n{l}\n\n"
-    await ctx.send(msg)
-
-@bot.command()
 async def penny(ctx):
     articles = fetch_articles("penny stocks to watch")
-    msg = "🪙 **PENNY STOCK**\n\n"
-    for t, l in articles:
-        msg += f"• {t}\n{l}\n\n"
-    await ctx.send(msg)
-
-@bot.command()
-async def options(ctx):
-    articles = fetch_articles("unusual options activity US stocks")
-    msg = "🧠 **OPTIONS FLOW**\n\n"
+    msg = "🪙 **PENNY STOCK NEWS**\n\n"
     for t, l in articles:
         msg += f"• {t}\n{l}\n\n"
     await ctx.send(msg)
@@ -291,12 +166,6 @@ async def status(ctx):
 async def on_ready():
     print(f"Logged in as {bot.user}")
     auto_price_alerts.start()
-    auto_market_news.start()
-    auto_earnings.start()
-    auto_calendar.start()
-    auto_premarket.start()
     auto_penny.start()
-    auto_volume_spike.start()
-    auto_options.start()
 
 bot.run(DISCORD_BOT_TOKEN)
