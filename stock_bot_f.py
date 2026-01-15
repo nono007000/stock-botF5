@@ -94,10 +94,21 @@ def fetch_articles(query):
 
 
 async def send_auto(msg):
-    if CHANNEL_ID:
+    if not CHANNEL_ID:
+        return
+
+    try:
         channel = bot.get_channel(CHANNEL_ID)
-        if channel:
-            await channel.send(msg)
+
+        # If not cached, fetch it
+        if channel is None:
+            channel = await bot.fetch_channel(CHANNEL_ID)
+
+        await channel.send(msg)
+
+    except Exception as e:
+        print("AUTO SEND ERROR:", e)
+
 
 @bot.command()
 async def testauto(ctx):
@@ -173,5 +184,6 @@ async def on_ready():
     auto_penny.start()
 
 bot.run(DISCORD_BOT_TOKEN)
+
 
 
