@@ -99,6 +99,10 @@ async def send_auto(msg):
         if channel:
             await channel.send(msg)
 
+@bot.command()
+async def testauto(ctx):
+    await send_auto("✅ AUTO SYSTEM WORKS")
+
 # ===================== AUTO TASKS =====================
 
 @tasks.loop(minutes=10)
@@ -169,4 +173,5 @@ async def on_ready():
     auto_penny.start()
 
 bot.run(DISCORD_BOT_TOKEN)
+
 
