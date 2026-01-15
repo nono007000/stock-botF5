@@ -130,7 +130,9 @@ async def before_penny():
 
 @bot.command()
 async def testauto(ctx):
+    await ctx.send("🧪 testauto command received")
     await send_auto("✅ AUTO SYSTEM WORKS")
+)
 
 @bot.command()
 async def status(ctx):
@@ -145,6 +147,7 @@ async def on_ready():
     auto_penny.start()
 
 bot.run(DISCORD_BOT_TOKEN)
+
 
 
 
