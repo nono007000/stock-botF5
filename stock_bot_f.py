@@ -143,6 +143,12 @@ async def stocknews(ctx, symbol: str):
         msg += f"• {t}\n{l}\n\n"
     await ctx.send(msg)
 
+@bot.command()
+async def testauto(ctx):
+    await send_auto("✅ TESTAUTO: Auto posting works")
+    await ctx.send("✅ Test sent via auto system")
+
+
 
 @bot.command()
 async def earnings(ctx, symbol: str):
@@ -195,6 +201,7 @@ async def on_ready():
     auto_market_news.start()
 
 bot.run(DISCORD_BOT_TOKEN)
+
 
 
 
