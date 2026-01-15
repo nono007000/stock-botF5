@@ -10,7 +10,7 @@ import os
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
-CHANNEL_ID = 1460290831356264704  # your channel ID
+CHANNEL_ID = 1461013783383248946  # your channel ID
 
 PERSONAL_STOCKS = {
     "AAPL": {"up": 180, "down": 170, "pct": 3},
@@ -195,6 +195,7 @@ async def on_ready():
         auto_penny.start()
 
 bot.run(DISCORD_BOT_TOKEN)
+
 
 
 
